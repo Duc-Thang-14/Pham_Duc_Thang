@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý điểm</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* CSS styles */
+    </style>
+</head>
+<body>
+<h1>Quản lý điểm</h1>
+<label for="subjectSelect">Chọn môn học:</label>
+<select id="subjectSelect">
+    <option value="">-- Chọn môn học --</option>
+    <th:block th:each="subject : ${subjects}">
+        <option th:value="${subject.subjectID}" th:text="${subject.subjectName}"></option>
+    </th:block>
+</select>
+<button id="searchButton">Tìm kiếm</button>
+
+<table id="studentTable" class="hidden">
+    <thead>
+    <tr>
+        <th>Mã SV</th>
+        <th>Tên SV</th>
+        <th>Điểm thường kỳ 1</th>
+        <th>Điểm thường kỳ 2</th>
+        <th>Điểm cuối kỳ</th>
+        <th>Vắng mặt</th>
+        <th>Điều kiện thi</th>
+        <th>Hành động</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    $(document).ready(function() {
+        $('#searchButton').click(function() {
+            const subjectId = $('#subjectSelect').val();
+            if (!subjectId) return alert('Vui lòng chọn môn học.');
+
+            $.get(`/student/manage-grade/students?subjectId=${subjectId}`, function(data) {
+                const tbody = $('#studentTable tbody');
+                tbody.empty();
+                if (data.length === 0) {
+                    alert('Không có sinh viên nào trong môn học này.');
+                    $('#studentTable').addClass('hidden');
+                    return;
+                }
+
+                data.forEach(student => {
+                    const row = `<tr>
+                        <td>${student.studentID}</td>
+                        <td>${student.studentName}</td>
+                        <td>${student.regularGrade1 || ''}</td>
+                        <td>${student.regularGrade2 || ''}</td>
+                        <td>${student.finalGrade || ''}</td>
+                        <td>${student.absentHours || ''}</td>
+                        <td>${student.examCondition || ''}</td>
+                        <td><button class="editButton" data-student="${student.studentID}" data-subject="${subjectId}">Chỉnh sửa</button></td>
+                    </tr>`;
+                    tbody.append(row);
+                });
+                $('#studentTable').removeClass('hidden');
+            });
+        });
+    });
+</script>
+</body>
+</html>
